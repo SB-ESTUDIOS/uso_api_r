@@ -7,11 +7,14 @@ output: html_document
 
 
 ```{r}
-library(httr) # Cargar las librerias necesarias
-library(jsonlite)
-library(ggplot2)
+library(httr) # conectar al API
+library(jsonlite) # convertir un objeto JSON a objeto R
+library(ggplot2) # generar gráficos
 
-apiKey <- "6fb9f8e014844d749d4e9f0bf10f5e5f"
+apiKey <- "colocar tu API key"
+
+# colocamos el url, end points y parámetros de consulta según las especificaciones 
+# de la página web del API de la SB https://desarrollador.sb.gob.do/
 
 base_url = "https://apis.sb.gob.do/estadisticas"
 end_point = "/captaciones/moneda/"
@@ -28,30 +31,30 @@ result <- GET(paste0(base_url,end_point),
 ```
 
 ```{r echo=TRUE}
-result <- content(result, as = "text", encoding = "UTF-8")
 
-result <- fromJSON(result) #convierte un objeto JSON a objeto R
+result <- content(result, as = "text", encoding = "UTF-8") # retorna un objeto en formato JSON
+
+result <- fromJSON(result) # convierte un objeto JSON a objeto R
 
 df <- as.data.frame(result$data) # convierte objETO R a Data frame
 
 print(head(df,3)) # Imprime las primeras 3 observaciones
 ```
 
-Se observa que la data fue cargada satisfactoriamente. Una vez cargada la data, existen diversas opciones para analizarla tanto de manera gráfica como tabular.
-
+Observamos que la data ha sido cargada satisfactoriamente. Ahora vamos a crear la gráfica. 
 ```{r}
 
 ggplot(data=df, aes(
          fill = divisa,
          y = balance / 1000000,
          x = as.Date(paste(periodo,"-01",sep="")))) +
-  scale_x_date(labels = date_format("%b-%Y"), breaks = "6 month") +
+  scale_x_date(labels = scales::date_format("%b-%Y"), breaks = "6 month") +
   scale_y_continuous(labels = scales::comma) +
   geom_bar(position = "stack", stat = "identity") +
   labs(x = " ",
        y = " ",
        fill = " ",
-       title = "Captaciones Totales por Moneda del Sistema Financiero", 
+       title = "Captaciones del Sistema Financiero por Moneda", 
        subtitle = paste0("enero 2019 - diciembre 2021", "\n","Valores en DOP millones")) +
   scale_fill_manual(
     values = c(
